@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background-color: darkslateblue;
+      }
+      .container {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .chat-box {
+        background-color: darkblue;
+        border: 2px solid lawngreen;
+        width: 500px;
+        height: 700px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .send-box {
+        height: 7%;
+        width: 100%;
+        display: flex;
+      }
+      .send-box > input {
+        height: 100%;
+        flex-grow: 1;
+      }
+
+      .title-box {
+        width: 100%;
+        text-align: center;
+        color: white;
+        font-size: 300%;
+        border: 1px solid lawngreen;
+        border-bottom: 2px solid lawngreen;
+      }
+      .main {
+        color: white;
+        width: 100%;
+        height: 100%;
+        padding: 20px;
+        font-size: 120%;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="chat-box">
+        <div class="title-box">即時通訊軟體</div>
+        <div class="main"></div>
+        <div class="send-box">
+          <input placeholder="請輸入訊息" />
+          <button>傳送訊息</button>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script>
+    const ws = new WebSocket("ws://localhost:8000");
+    const btn = document.querySelector(".send-box > button");
+    const chat = document.querySelector(".main");
+    const input = document.querySelector(".send-box > input");
+
+    ws.onopen = () => {
+      chat.innerHTML = `<div style="color: green; text-align: center; margin-bottom: 8px">您已連接</div>`;
+    };
+    ws.onclose = () => {
+      console.log("您已斷開連接");
+    };
+
+    btn.addEventListener("click", () => {
+      const message = input.value;
+      sendMessage(message);
+      input.value = null;
+    });
+
+    input.addEventListener("keydown", (evt) => {
+      if (evt.key === "Enter") {
+        const message = input.value;
+        sendMessage(message);
+        input.value = null;
+      }
+    });
+
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data).msg;
+      const id = JSON.parse(event.data).id;
+      const node = document.createElement("div");
+      node.innerHTML = `
+        <div style="color: lawngreen;">${id}: </div>
+        <div>${message}</div>
+      `;
+      chat.append(node);
+    };
+
+    function sendMessage(message) {
+      if (message) {
+        ws.send(message);
+      }
+    }
+  </script>
+</html>
